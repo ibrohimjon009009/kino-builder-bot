@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Rangli Tugmalar Sozlamasi</title>
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- FontAwesome Ikonkalar -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0f172a;
+            --card-bg: #1e293b;
+            --input-bg: #0f172a;
+            --border-color: #334155;
+            --text-color: #f8fafc;
+            --text-muted: #94a3b8;
+            --primary-color: #0284c7;
+            --primary-hover: #0369a1;
+            --success-color: #10b981;
+            --danger-color: #ef4444;
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            padding: 16px;
+            padding-bottom: 30px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            user-select: none;
+        }
+
+        .header {
+            text-align: center;
+            padding: 8px 0;
+        }
+
+        .header h1 {
+            font-size: 20px;
+            font-weight: 700;
+            color: #38bdf8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .header p {
+            font-size: 13px;
+            color: var(--text-muted);
+            margin-top: 4px;
+        }
+
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .form-group label {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--text-muted);
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-wrapper i {
+            position: absolute;
+            left: 12px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            background-color: var(--input-bg);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 12px 12px 12px 38px;
+            color: var(--text-color);
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .form-control:focus {
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.15);
+        }
+
+        /* Ranglar Setka To'plami (30 ta rang) */
+        .color-grid {
+            display: grid;
+            grid-template-columns: repeat(6, 1fr);
+            gap: 8px;
+            margin-top: 4px;
+            max-height: 210px;
+            overflow-y: auto;
+            padding: 4px;
+            scrollbar-width: thin;
+        }
+
+        .color-option {
+            width: 100%;
+            aspect-ratio: 1 / 1;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+            position: relative;
+        }
+
+        .color-option:active {
+            transform: scale(0.92);
+        }
+
+        .color-option.selected {
+            border-color: #ffffff;
+            box-shadow: 0 0 12px rgba(255, 255, 255, 0.6);
+            transform: scale(1.05);
+            z-index: 2;
+        }
+
+        .color-option.selected::after {
+            content: "\f00c";
+            font-family: "Font Awesome 6 Free";
+            font-weight: 900;
+            position: absolute;
+            inset: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 12px;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+        }
+
+        /* Tugma qo'shish tugmasi */
+        .btn-add {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius-md);
+            padding: 12px;
+            font-size: 14px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            margin-top: 4px;
+        }
+
+        .btn-add:active {
+            background-color: var(--primary-hover);
+        }
+
+        /* Qo'shilgan tugmalar ro'yxati */
+        .section-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--text-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .button-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            min-height: 40px;
+        }
+
+        .empty-state {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 13px;
+            padding: 20px;
+            border: 1px dashed var(--border-color);
+            border-radius: var(--radius-md);
+        }
+
+        .button-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 14px;
+            border-radius: var(--radius-md);
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+            animation: fadeIn 0.2s ease-in-out;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .button-item .btn-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .button-item .btn-remove {
+            background: rgba(0, 0, 0, 0.25);
+            border: none;
+            color: white;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background 0.2s;
+            flex-shrink: 0;
+        }
+
+        .button-item .btn-remove:active {
+            background: rgba(239, 68, 68, 0.8);
+        }
+
+        /* Asosiy Yuborish Tugmasi */
+        .btn-submit {
+            background-color: var(--success-color);
+            color: white;
+            border: none;
+            border-radius: var(--radius-lg);
+            padding: 14px;
+            font-size: 15px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+            transition: transform 0.15s, background-color 0.2s;
+            margin-top: 8px;
+        }
+
+        .btn-submit:active {
+            transform: scale(0.98);
+        }
+
+        .btn-submit:disabled {
+            background-color: #475569;
+            box-shadow: none;
+            cursor: not-allowed;
+            opacity: 0.6;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-6px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1><i class="fa-solid fa-palette"></i> Rangli Tugmalar Sozlamasi</h1>
+        <p>Xabarga qo'shiladigan tugmalarni yaratib, tartiblang</p>
+    </div>
+
+    <!-- TUGMA YARATISH FORMASI -->
+    <div class="card">
+        <div class="form-group">
+            <label>1. Tugma Nomi:</label>
+            <div class="input-wrapper">
+                <i class="fa-solid fa-font"></i>
+                <input type="text" id="btnName" class="form-control" placeholder="Masalan: 📢 Obuna bo'lish" maxlength="35">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>2. Havola (Link):</label>
+            <div class="input-wrapper">
+                <i class="fa-solid fa-link"></i>
+                <input type="url" id="btnUrl" class="form-control" placeholder="https://t.me/KanalUsername">
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label>3. Rang tanlang (30 xil rang):</label>
+            <div class="color-grid" id="colorGrid">
+                <!-- Javascript orqali 30 ta rang yaratiladi -->
+            </div>
+        </div>
+
+        <button type="button" class="btn-add" id="btnAdd">
+            <i class="fa-solid fa-plus"></i> Tugma Qo'shish
+        </button>
+    </div>
+
+    <!-- QO'SHILGAN TUGMALAR RO'YXATI -->
+    <div class="card">
+        <div class="section-title">
+            <span>Qo'shilgan Tugmalar (<span id="btnCount">0</span>):</span>
+        </div>
+        <div class="button-list" id="buttonList">
+            <div class="empty-state" id="emptyState">
+                Hali hech qanday tugma qo'shilmadi
+            </div>
+        </div>
+    </div>
+
+    <!-- BARCHASINI BOTGA YUBORISH TUGMASI -->
+    <button type="button" class="btn-submit" id="btnSubmit" disabled>
+        <i class="fa-solid fa-paper-plane"></i> Xabarni Barchaga Yuborish
+    </button>
+
+    <script>
+        // Telegram WebApp obyektini faollashtirish
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.ready();
+            tg.expand();
+        }
+
+        // 30 xil Ultra Premium Gradient va Ranglar
+        const COLORS = [
+            { bg: 'linear-gradient(135deg, #f59e0b, #d97706)', emoji: '🟡', name: 'Sariq' },
+            { bg: 'linear-gradient(135deg, #f97316, #ea580c)', emoji: '🟠', name: 'Olovrang' },
+            { bg: 'linear-gradient(135deg, #ef4444, #dc2626)', emoji: '🔴', name: 'Qizil' },
+            { bg: 'linear-gradient(135deg, #a855f7, #9333ea)', emoji: '🟣', name: 'Binafsha' },
+            { bg: 'linear-gradient(135deg, #3b82f6, #1d4ed8)', emoji: '🔵', name: 'Moviy' },
+            { bg: 'linear-gradient(135deg, #10b981, #059669)', emoji: '🟢', name: 'Yashil' },
+            { bg: 'linear-gradient(135deg, #06b6d4, #0891b2)', emoji: '🌐', name: 'Feruza' },
+            { bg: 'linear-gradient(135deg, #ec4899, #db2777)', emoji: '🌸', name: 'ชมพู' },
+            { bg: 'linear-gradient(135deg, #84cc16, #65a30d)', emoji: '🍏', name: 'Limon' },
+            { bg: 'linear-gradient(135deg, #6366f1, #4f46e5)', emoji: '⚡', name: 'Indigo' },
+            { bg: 'linear-gradient(135deg, #14b8a6, #0d9488)', emoji: '🌿', name: 'Yalpiz' },
+            { bg: 'linear-gradient(135deg, #f43f5e, #e11d48)', emoji: '🍒', name: 'Gilos' },
+            { bg: 'linear-gradient(135deg, #8b5cf6, #7c3aed)', emoji: '🔮', name: 'Siyohrang' },
+            { bg: 'linear-gradient(135deg, #0284c7, #0369a1)', emoji: '🌊', name: 'Okean' },
+            { bg: 'linear-gradient(135deg, #d97706, #b45309)', emoji: '🟤', name: 'Jigarrang' },
+            { bg: 'linear-gradient(135deg, #334155, #1e293b)', emoji: '⬛', name: 'To\'q Kulrang' },
+            { bg: 'linear-gradient(135deg, #64748b, #475569)', emoji: '🌫️', name: 'Metallar' },
+            { bg: 'linear-gradient(135deg, #0f172a, #020617)', emoji: '🖤', name: 'Qora' },
+            { bg: 'linear-gradient(135deg, #ff007f, #7928ca)', emoji: '🎆', name: 'Neon' },
+            { bg: 'linear-gradient(135deg, #00f2fe, #4facfe)', emoji: '❄️', name: 'Muz' },
+            { bg: 'linear-gradient(135deg, #fa709a, #fee140)', emoji: '🌅', name: 'Quyosh' },
+            { bg: 'linear-gradient(135deg, #43e97b, #38f9d7)', emoji: '🍃', name: 'Smaragd' },
+            { bg: 'linear-gradient(135deg, #f83600, #f9d423)', emoji: '🔥', name: 'Olov' },
+            { bg: 'linear-gradient(135deg, #09203f, #537895)', emoji: '🌌', name: 'Tungi Osmon' },
+            { bg: 'linear-gradient(135deg, #b224ef, #7579ff)', emoji: '✨', name: 'Sehr' },
+            { bg: 'linear-gradient(135deg, #11998e, #38ef7d)', emoji: '🌱', name: 'Tabiat' },
+            { bg: 'linear-gradient(135deg, #ff0844, #ffb199)', emoji: '🍑', name: 'Shaftoli' },
+            { bg: 'linear-gradient(135deg, #e12854, #f86d8c)', emoji: '💖', name: 'Atirgul' },
+            { bg: 'linear-gradient(135deg, #2af598, #009efd)', emoji: '💎', name: 'Olmos' },
+            { bg: 'linear-gradient(135deg, #f12711, #f5af19)', emoji: '👑', name: 'Oltin' }
+        ];
+
+        let selectedColorIndex = 0;
+        let addedButtons = [];
+
+        // Elementlarni olish
+        const colorGrid = document.getElementById('colorGrid');
+        const btnNameInput = document.getElementById('btnName');
+        const btnUrlInput = document.getElementById('btnUrl');
+        const btnAdd = document.getElementById('btnAdd');
+        const buttonList = document.getElementById('buttonList');
+        const emptyState = document.getElementById('emptyState');
+        const btnCount = document.getElementById('btnCount');
+        const btnSubmit = document.getElementById('btnSubmit');
+
+        // Ranglar palitrasini yaratish
+        COLORS.forEach((color, index) => {
+            const div = document.createElement('div');
+            div.className = `color-option ${index === 0 ? 'selected' : ''}`;
+            div.style.background = color.bg;
+            div.addEventListener('click', () => {
+                document.querySelectorAll('.color-option').forEach(el => el.classList.remove('selected'));
+                div.classList.add('selected');
+                selectedColorIndex = index;
+                if (tg && tg.HapticFeedback) tg.HapticFeedback.selectionChanged();
+            });
+            colorGrid.appendChild(div);
+        });
+
+        // Tugma qo'shish hodisasi
+        btnAdd.addEventListener('click', () => {
+            const name = btnNameInput.value.trim();
+            let url = btnUrlInput.value.trim();
+
+            if (!name) {
+                alert("Iltimos, tugma nomini kiriting!");
+                return;
+            }
+
+            if (!url) {
+                alert("Iltimos, havola (link)ni kiriting!");
+                return;
+            }
+
+            if (!url.startsWith('http://') && !url.startsWith('https://')) {
+                url = 'https://' + url;
+            }
+
+            const btnObj = {
+                id: Date.now(),
+                text: name,
+                url: url,
+                colorIndex: selectedColorIndex,
+                color: COLORS[selectedColorIndex].bg,
+                emoji: COLORS[selectedColorIndex].emoji
+            };
+
+            addedButtons.push(btnObj);
+            
+            // Inputlarni tozalash
+            btnNameInput.value = '';
+            btnUrlInput.value = '';
+
+            renderButtons();
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.notificationOccurred('success');
+        });
+
+        // Tugmalarni ekranga chiqarish
+        function renderButtons() {
+            buttonList.innerHTML = '';
+
+            if (addedButtons.length === 0) {
+                buttonList.appendChild(emptyState);
+                btnSubmit.disabled = true;
+                btnCount.textContent = '0';
+                return;
+            }
+
+            btnSubmit.disabled = false;
+            btnCount.textContent = addedButtons.length;
+
+            addedButtons.forEach((btn, idx) => {
+                const item = document.createElement('div');
+                item.className = 'button-item';
+                item.style.background = btn.color;
+
+                item.innerHTML = `
+                    <div class="btn-info">
+                        <span>${btn.emoji}</span>
+                        <span>${btn.text}</span>
+                    </div>
+                    <button class="btn-remove" onclick="removeButton(${btn.id})">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                buttonList.appendChild(item);
+            });
+        }
+
+        // Tugmani o'chirish
+        window.removeButton = function(id) {
+            addedButtons = addedButtons.filter(b => b.id !== id);
+            renderButtons();
+            if (tg && tg.HapticFeedback) tg.HapticFeedback.impactOccurred('medium');
+        };
+
+        // Barcha tugmalarni JSON shaklida Telegram Botiga yuborish
+        btnSubmit.addEventListener('click', () => {
+            if (addedButtons.length === 0) return;
+
+            // Telegram botga yuboriladigan to'liq va tartiblangan ma'lumot
+            const payload = addedButtons.map(b => ({
+                text: `${b.emoji} ${b.text}`,
+                url: b.url,
+                color: b.colorIndex,
+                bg: b.color
+            }));
+
+            const dataString = JSON.stringify(payload);
+
+            if (tg) {
+                tg.sendData(dataString);
+            } else {
+                alert("Ma'lumot tayyorlandi:\n" + dataString);
+            }
+        });
+    </script>
+</body>
+</html>
+
